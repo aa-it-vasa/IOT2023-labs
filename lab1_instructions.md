@@ -134,9 +134,9 @@ mosquitto_sub -h broker.hivemq.com -t "responseTopic"
    if necessary. Get a working understanding of the
    [WiFiNINA](https://www.arduino.cc/en/Reference/WiFiNINA) and
    [ArduinoMqttClient](https://github.com/arduino-libraries/ArduinoMqttClient)
-   library, although you don't have to explain the functionality in the report. (2p)
-2. What is the value returned by mqttClient.messageQoS() ? What does it means ? (2p)
-3. What is the value returned by mqttClient.messageRetain() ? What does it means ? (2p)
+   library, although you don't have to explain the functionality in the report. (2 p)
+2. What is the value returned by mqttClient.messageQoS() ? What does it means ? (2 p)
+3. What is the value returned by mqttClient.messageRetain() ? What does it means ? (2 p)
 
 ## Command and Reponse
 
@@ -151,16 +151,16 @@ mosquitto_pub -h broker.hivemq.com -t "commandTopic" -m "command"
 
 ### To do
 
-1.  Modify your subscriber to implement these two commands (2p)
+1.  Modify your subscriber to implement these two commands (2 p)
     1. The **ON** command will turn on the onboard LED. 
     2. Similarly, **OFF** command will turn off the onboard LED.
     3. The **TEMP** command will send the temperature on the appropriate
        response topic, once.
     4. Any other command will not generate a response. 
 2. Modify the publisher to transmit messages only when an appropriate **TEMP** command
-   is received. (2p)
-3. Test the implementation by sending the **ON**, **OFF** and **TEMP** commands on the relevant topic from your desktop machine (your ubuntu VM machine) (2p)
-4. In your report provide a block diagram of the implemented system and a screenshot of the implemented functions (or rather include the code as text for increased readability). (2p)
+   is received. (2 p)
+3. Test the implementation by sending the **ON**, **OFF** and **TEMP** commands on the relevant topic from your desktop machine (your Ubuntu VM machine) (2 p)
+4. In your report provide a block diagram of the implemented system. (2 p)
 
 Hint: Check
 [String](https://www.arduino.cc/reference/en/language/variables/data-types/stringobject/)
