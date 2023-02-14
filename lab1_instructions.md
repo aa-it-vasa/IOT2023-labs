@@ -110,7 +110,7 @@ as **DAC0/A0**.
 
 ### For both Turku and Vaasa
 
-Once the hardware is setup, open the Sketch `mqtt_unsecure` available from the Lab1 folder. Note that there is a different folder for Vaasa. 
+Once the hardware is setup, open the Sketch `mqtt_unsecure` available from the Lab1 folder. Note that there is a different folder for Vaasa (you need to rename this folder from `mqtt_unsecure_vaasa` to `mqtt_unsecure` for it to open properly in ArduinoIDE.
 
 Have a look at the code and understand what it does before uploading the code. Change the content of the variable _group = "MyGroup"_
 Use the provided WiFi username and password if needed (check the defined variable from the .h header file). Remember to check the ArduinoMqttClient library and WiFiNINA libraries (Tools->manage Library) were installed. 
