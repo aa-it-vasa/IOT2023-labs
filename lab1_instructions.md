@@ -96,11 +96,10 @@ thermistors pins are in different order, see
 
 ![](./figs/lmt87.png)
 
-Numbers are determined by holding the flat end towards you, with pins facing
-downwards and counting from left. From the schematic, you connect first pin of
+Numbers are indicated in the figure. From the schematic, you connect the third pin of
 the thermistor to third pin on Arduino marked as **Vcc**. Connect the second pin 
 of the Arduino to the fourth pin of the Arduino board, marked as **GND**. GND 
-pin is on the same side as Vcc.  Connect the third pin of the thermistor to 
+pin is on the same side as Vcc. Connect the first pin of the thermistor to 
 second pin on the Arduino situated on the other side of the Vcc and is marked 
 as **DAC0/A0**. 
 
