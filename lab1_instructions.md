@@ -123,8 +123,8 @@ Compile the code and upload it to the board.
 
 Verify the state of the Arduino board by connecting to the *Monitor* _(in Tools-> Serial monitor)_ in the
 IDE.  You can see the transmitted MQTT messages by subscribing on [broker.hivemq.com](http://www.mqtt-dashboard.com/index.html) to the relevant topic
-(read the code to get the relevant topic). **In your ubuntu VM machine**, in a terminal execute
-the mosquitto_sub command as bellow. Substitute `responseTopic` within the quotes (retain the quotes
+(read the code to get the relevant topic). **In your VM machine** (or in, for example, a local Linux-installation) execute
+the mosquitto_sub command as below in a terminal. Substitute `responseTopic` within the quotes (retain the quotes
 later) with the topic your device is sending the messages into. You may have to
 change the topic, so read the source code.
 
