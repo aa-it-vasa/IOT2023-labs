@@ -56,7 +56,7 @@ sides of the central ridge of the breadboard and that all the pins are inserted
 in the breadboard. (See the image below or ask me if you're unsure).
 
 Now we will verify that Arduino IDE has read and write access to the Arduino
-board.  In the Arduino IDE, open the Sketch `TestLed` available from the folder Lab1. Select the board _MKR WiFI 1010_  (Tools->Board->SAMD 32-bits ARM cortex M0+Boards) and be sure you use the correct serial port (bellow the selected board in the Tools menu). You might need to re-active the USB sharing from the VirtualBox menu if you do not see the correct serial port from the listed option.
+board.  In the Arduino IDE, open the Sketch `TestLed` available from the folder Lab1. Select the board _MKR WiFI 1010_  (Tools->Board->SAMD 32-bits ARM cortex M0+Boards) and be sure you use the correct serial port (below the selected board in the Tools menu). You might need to re-active the USB sharing from the VirtualBox menu if you do not see the correct serial port from the listed option.
 
 Verify/compile and upload the sketch to the Arduino MKR WiFi 1010 board (in the menu Sketch->Verifu/Compile and Upload)). If
 everything goes well, you must see a yellow LED blinking on the board. You are done for the arduino setup as you can compile and upload an program on the board from the virtual environment.
