@@ -1,10 +1,16 @@
 # Lab 1 - Lab setup + MQTT with Arduino MKR WiFi1010
 
+For the lab we will use Arduino IDE: https://www.arduino.cc/en/Main/Software to program the Arduino MKR WiFi1010 board.
+
+## Running the Arduino IDE in the VM
+
 Continue from the instructions in the `README` file for setting up VirtualBox.
 
 Plug the Arduino MKR Wifi 1010 with the USB cable to your laptop and be sure you enable the USB port controller and add the corresponding USB filter into the list of shared USB device (see screenshot below)
 
 ![](./figs/ShareUSB.png)
+
+The IDE is already available from the provided VM and installed in the folder _arduinoIDE_, and should be start by executing the script _./arduinoIDE/arduino_
 
 ### Running the Arduino IDE without the VM
 If you do not want to use the provided VM, it is possible to use the Arduino IDE directly on your computer (this may also be necessary in case you are not able to program the Arduino board from the IDE provided in the VM). Then you need to install the IDE from https://www.arduino.cc/en/software. 
@@ -16,7 +22,7 @@ You may also need to install some libraries in the IDE through _Sketch > Include
 
 You may also need to install support for the board we are using, this is done under _Tools > Board > Board Manager_. The one needed is called _Arduino AVR Boards_. 
 
-The source files must also be downloaded from Github. 
+The source files must also be downloaded from Github to your local machine.
 
 
 ## Lab 1 - Before you begin,
@@ -27,8 +33,7 @@ the MQTT protocol. You will establish an insecure link and measure the transmiss
 latency. You will also implement logic to perform actuation on the sensor based
 on user commands.
 
-For the lab we will use Arduino IDE: https://www.arduino.cc/en/Main/Software
-The IDE is already available from the provided VM and installed in the folder _arduinoIDE_, and should be start by executing the script _./arduinoIDE/arduino_
+
 
 Please do the following:
 
