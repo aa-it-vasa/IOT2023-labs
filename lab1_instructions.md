@@ -140,9 +140,9 @@ mosquitto_sub -h broker.hivemq.com -t "responseTopic"
    if necessary. Get a working understanding of the
    [WiFiNINA](https://www.arduino.cc/en/Reference/WiFiNINA) and
    [ArduinoMqttClient](https://github.com/arduino-libraries/ArduinoMqttClient)
-   library, although you don't have to explain the functionality in the report. (2 p)
-2. What is the value returned by mqttClient.messageQoS() ? What does it mean? (2 p)
-3. What is the value returned by mqttClient.messageRetain() ? What does it mean? (2 p)
+   library, although you don't have to explain the functionality in the report. (1 p)
+2. What is the value returned by mqttClient.messageQoS() ? What does it mean? (1 p)
+3. What is the value returned by mqttClient.messageRetain() ? What does it mean? (1 p)
 
 ## Command and Reponse
 
