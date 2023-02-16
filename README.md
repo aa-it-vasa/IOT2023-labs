@@ -56,10 +56,11 @@ goals:
 
 ## Grading and Expectations
 
+### Lab reports
 The lab work is graded based on a sumitted report (one report per lab/group) as well
-as the code you have in your repository. The report is written in Markdown format in 
-the files `Report_lab*.md` files. Note that the last committed version on the `main`-branch 
-at the deadline is used for grading.
+as the code you have in your repository. The report is written in Markdown format in the files `Report_labN.md` files. 
+
+Note that the last committed version on the `main`-branch at the deadline is used for grading.
 
 Your own code should be placed in a subfolder named `code/Lab*` (where `*` is the lab number) 
 in the main branch.
@@ -71,18 +72,19 @@ help explain your solution. If you use content (picture, graphs, etc.)
 from other sources, remember to properly cite and provide reference to the used
 external sources. Refer to the code you have in your repository using links. 
 
-At the end of the report you should also provide a reflection on
-what you learned during this exercise. This section could provide answers to
-the following questions:
+### Learning reflections
+You should also provide a reflection on what you learned during these labs in 
+the file `lab_reflection.md`. This file should provide answers to the following questions:
 
 1. Have you learned anything new?
 2. Did anything surprise you?
 3. Did you find anything challenging?
 4. Did you find anything satisfying?
 
-The report should contain full name and student number of each group member.
 
-The hard deadline for submission is ***20.03.2023 23:55***. Note that you will also need
+The report and reflections should contain full name of each group member.
+
+The hard deadline for submission is **20.03.2023 23:55**. Note that each group will also need
 to submit a link to your repo in Moodle before the deadline.
 
 ## Setup your computer 
