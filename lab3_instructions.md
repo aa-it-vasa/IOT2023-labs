@@ -65,6 +65,19 @@ exercise and walks you through discovery and connection management.
    vm> ssh pi@IPADDRESS
    ```
 
+3. Check that Greengrass is not installed and running on the RPI by issuing:
+   ```
+   rpi> sudo systemctl status greengrass.service
+   ``` 
+   If it is installed issue the following commands before continuing 
+   ```
+   rpi> sudo systemctl stop greengrass.service
+   rpi> sudo systemctl disable greengrass.service
+   rpi> sudo rm /etc/systemd/system/greengrass.service
+   rpi> sudo systemctl daemon-reload && sudo systemctl reset-failed
+   rpi> sudo rm -rf /greengrass/v2
+   ```
+
 ## Setup Greengrass Core Device
 
 To setup the Greengrass software on the RPI we will use the Greengrass device setup script provided by AWS. This script will
@@ -79,18 +92,38 @@ Perform the following steps to setup the Greengrass software:
 4. Give the core device a unique name that you will remember. For example _GreenGrassCore-groupname_. Write down the name of the core.
 5. Select _Enter a new group name_ under _Thing group_. Give the group a unique name, for example, _GreengrassGroup-groupname_. Write down the name of the group.
 6. Select _Linux_ under _Operating System_.
-7. Some credentials are needed for the script to be able to communicate with the corresponding AWS services. Depending on the setup, these can be different for each gateway device or shared. For simplicity and security, these will be provided to each group during the lab. It is easiest if these are saved as environmental variables in the shell you are using on the RPI. Execute the following commands on the RPI.
-```
-pi> export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-pi> export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-pi> export AWS_SESSION_TOKEN=AQoDYXdzEJr1K...o5OytwEXAMPLE=
-```
-where the keys are replaced with their correct values. Also remember to remove the `pi>` statement. 
+7. Some credentials are needed for the script to be able to communicate with the corresponding AWS services. Depending on the setup, these can be different for each gateway device or shared. For simplicity and security, these will be provided to each group during the lab. It is easiest if these are saved as environmental variables in the shell you are using on the RPI. Execute the following commands on the RPI where the keys are replaced with their correct values. Also remember to remove the `pi>` statement:
+   ```
+   pi> export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+   pi> export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+   ```
 8. Download and start the script according to the instructions on the AWS Console. You can use `curl` to download the script, for example:
-```
-curl https://d1onfpft10uf5o.cloudfront.net/greengrass-device-setup/downloads/gg-device-setup-latest.sh > gg-device-setup-latest.sh && chmod +x ./gg-device-setup-latest.sh && sudo -E ./gg-device-setup-latest.sh bootstrap-greengrass-interactive 
-```
-9. Run the installer by executing the **specific** command given under _Run the installer_. Make sure you understand what the command does and that it executes successfully, i.e., that there are no error messages.
+   ```
+   curl https://d1onfpft10uf5o.cloudfront.net/greengrass-device-setup/downloads/gg-device-setup-latest.sh > gg-device-setup-latest.sh && chmod +x ./gg-device-setup-latest.sh && sudo -E ./gg-device-setup-latest.sh bootstrap-greengrass-interactive 
+   ```
+9. Run the installer by executing the **specific** command given under _Run the installer_. Make sure you understand what the command does and that it executes successfully, i.e., that there are no error messages. It should output something similar to:
+   ```
+   Provisioning AWS IoT resources for the device with IoT Thing Name: [GreengrassQuickStartCore-andreas]...
+   Found IoT policy "GreengrassV2IoTThingPolicy", reusing it
+   Creating keys and certificate...
+   Attaching policy to certificate...
+   Creating IoT Thing "GreengrassQuickStartCore-andreas"...
+   Attaching certificate to IoT thing...
+   Successfully provisioned AWS IoT resources for the device with IoT Thing Name: [GreengrassQuickStartCore-andreas]!
+   Adding IoT Thing [GreengrassQuickStartCore-andreas] into Thing Group: [GreengrassGroupAndreas]...
+   Successfully added Thing into Thing Group: [GreengrassGroupAndreas]
+   Setting up resources for aws.greengrass.TokenExchangeService ...
+   Attaching TES role policy to IoT thing...
+   No managed IAM policy found, looking for user defined policy...
+   IAM policy named "GreengrassV2TokenExchangeRoleAccess" already exists. Please attach it to the IAM role if not already
+   Configuring Nucleus with provisioned resource details...
+   Downloading Root CA from "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
+   Created device configuration
+   Successfully configured Nucleus with provisioned resource details!
+   Creating a deployment for Greengrass first party components to the thing group
+   Configured Nucleus to deploy aws.greengrass.Cli component
+   Successfully set up Nucleus as a system service
+   ```
 10. Press _View core devices_ to return to the list. Your device should now be visible in the list and its status should be _Healthy_. 
 
 
@@ -108,125 +141,94 @@ The simulated Thing will be your terminal from your computer. To create a new
 thing, we will create the key pair and register the public key with AWS IoT in
 one step. 
 
-1. Under _Manage > Greengrass devices > Core devices_ open the Greengrass core device you created in the previous step by clicking on its name. 
-2. There are several tabs on the detail page of the core device (the RPI's Greengrass instance). 
-- Components: Here all the different software components deployed to the core device is listed. For example, we have an MQTT broker (Moquette) and a MQTT bridge deployed. It is also possible to deploy what components are deployed under _Manage > Greengrass devices > Deployments_. We will look at this in the next lab.
-- Client devices: here we can add local Things that will communicate through the Greengrass instance installed on the RPI. These can be, e.g., sensors or actuators (or our simulated thing in this case).
-3. To register the thing select the tab _Client devices_ and press the button _Cloud discovery configuration_. Select _Target type_ as _Core device_. The _Target name_ field should be prepopulated with the name of the Greengrass core device name you have created.
-4. Press the button _Associate client devices_. Enter the name of your created thing into the _AWS IoT thing name_ and press _Add_. Then press _Associate_. 
-5. Under _Step 3_ the following items should be checked.
-
-![](./figs/cloud_discover_step3.png)
-
-6. Under _Client device auth_ press _Edit configuration_ and add the following under _Configuration to merge_:
-```
-{
-	"deviceGroups": {
-		"formatVersion": "2021-03-05",
-		"definitions": {
-			"MyDeviceGroup": {
-				"selectionRule": "thingName: *",
-				"policyName": "MyClientDevicePolicy"
-			}
-		},
-		"policies": {
-			"MyClientDevicePolicy": {
-				"AllowConnect": {
-					"statementDescription": "Allow client devices to connect.",
-					"operations": [
-						"mqtt:connect"
-					],
-					"resources": [
-						"*"
-					]
-				},
-				"AllowPublish": {
-					"statementDescription": "Allow client devices to publish to all topics.",
-					"operations": [
-						"mqtt:publish"
-					],
-					"resources": [
-						"*"
-					]
-				},
-				"AllowSubscribe": {
-					"statementDescription": "Allow client devices to subscribe to all topics.",
-					"operations": [
-						"mqtt:subscribe"
-					],
-					"resources": [
-						"*"
-					]
-				}
-			}
-		}
-	}
-}
-```
-5. Under _MQTT bridge_ press _Edit configuration_ and add the following under _Configuration to merge_:
-```
-{
-   "mqttTopicMapping": 
-      {
-      "GroupName_LocalToCloud": {
-         "topic": "saiot/GROUPNAME/publish",
-         "source": "LocalMqtt",
-         "target": "IotCore"
-      }
-   }
-}
-```
-6. Press _Review and deploy_.
-
-4. Press _Create things_ and select _Create single thing_ and press _Next_.  
-5. Enter a unique name for your thing, e.g., `simthing_groupname` and press _Next_. Remember this name!
-6. We want AWS to generate the certificates and keys that will be used to authorize the communication from the thing, so use the default _Auto-generate a new certificate (recommended)_ and press _Next_. 
-7. In the _Policies_ window, do not select a policy and just press _Next_. 
-8. In the window _Download certificates and keys_, download the device certificate, public and private keys and store them in the folder 
+1. Go to _Manage > All devices > Things_. Press _Create things_ and select _Create single thing_ and press _Next_.  
+2. Enter a unique name for your thing, e.g., `simthing_groupname` and press _Next_. Remember this name!
+3. We want AWS to generate the certificates and keys that will be used to authorize the communication from the thing, so use the default _Auto-generate a new certificate (recommended)_ and press _Next_. 
+4. In the _Policies_ window, select the `GreengrassV2IoTThingPolicy` and just press _Next_. You can review what the policy contains by clicking on the name of it.
+5. In the window _Download certificates and keys_, download the device certificate, public and private keys and store them in the folder 
    `Publisher_Sim` on the VM. You can rename the certificate, public and private key as
    `publisher_sim.pem.crt`, `publisher_sim-public.pem.key` and
    `publisher_sim-private.pem.key`. Note that if you forget to save these at this stage, you will need to recreate the thing!
 6. Finally, download the RSA 2048 root ca from the window. You can also download it from
    [here](https://www.amazontrust.com/repository/AmazonRootCA1.pem). Save it as `root_ca.pem` in the same folder as they previous certificate and keys. 
 7. Make sure that the Thing you created is visible in the list of things. 
-8. You can now close this tab to go back to the _Associate client devices with core device_ popup window. 
-9. Write the name of the created thing in the field _AWS IoT thing name_ and press _Add_. Press _Associate_. Make sure that your thing is now in the list _Associated client devices_ on the _Client devices_ tab.
-10. We also need to allow the group the things is part of to send and receive MQTT messages to and from the MQTT broker running on the Greengrass device. Select the tab _Thing groups_ and press the name of the group. Select the tab _Policies_ and press the buttom _Manage policies_. Press _Add policy_ and select _GreengrassV2IoTThingPolicy_ and press _Update policies_. It should look like this:
+8. Open the Thing you created and verify that the certificate is active under the _Certificates_ tab.
 
+Now we need to connect the thing we created to the Greengrass core device. 
+1. Under _Manage > Greengrass devices > Core devices_ open the Greengrass core device you created in the previous step by clicking on its name. 
+2. There are several tabs on the detail page of the core device (the RPI's Greengrass instance). 
+   - Components: Here all the different software components deployed to the core device is listed. For example, we have an MQTT broker (Moquette) and a MQTT bridge deployed. It is also possible to deploy what components are deployed under _Manage > Greengrass devices > Deployments_. We will look at this in the next lab.
+   - Client devices: here we can add local Things that will communicate through the Greengrass instance installed on the RPI. These can be, e.g., sensors or actuators (or our simulated thing in this case).
+3. To setup discoverability for the things, select the tab _Client devices_ and press the button _Cloud discovery configuration_. Select _Target type_ as _Core device_. The _Target name_ field should be prepopulated with the name of the Greengrass core device name you have created.
+4. Press the button _Associate client devices_. Enter the name of your created thing into the _AWS IoT thing name_ and press _Add_. Then press _Associate_. Make sure that your thing is now in the list _Associated client devices_ on the _Client devices_ tab.
+5. Under _Step 3_ the following items should be checked.
 
-![](./figs/thing_group_policies.png)
+   ![](./figs/cloud_discover_step3.png)
 
-**Optional:** If you want to do the optional task repeat the previous steps to create another Thing. Call it _Snoopy_subscriber_GROUPNAME_. We will
-try to simulate a malicious subscriber using this Thing. After creation, select the _Snoopy_subscriber_GROUPNAME_ thing and press _Disassociate_ to deactivate it.
-
-To setup a connection between your device and the cloud, through the gateway we will need to setup the MQTT broker on the Greengrass core device. 
-
-1. In the _Client devices_ tab press the button _Manage endpoints_ under _MQTT broker endpoints_. 
-2. In the field _Endpoint_ enter the IP address of your RPI. Enter _8883_ as the port and press _Update_. 
-
-## Create the MQTT subscriptions
-
-We also need to make sure that the MQTT messages are passed on through the broker on the Greengrass core device instance running on the RPI:
-1. Under _Manage > Greengrass devices > Deployments_ press select the one corresponding to your Greengrass Core device group, e.g., with _GreenGrassCore-groupname_ as the _Target name_ and press _Revise_. 
-2. Press _Next_ to advance to _Step 2_.
-3. In the box _Public components_ make sure that _Show only selected components_ is disable to show the full list. Then make sure at least the following `aws.greengrass.Cli`, `aws.greengrass.clientdevices.mqtt.Bridge`, `aws.greengrass.clientdevices.mqtt.Moquette` are selected and press _Next_. 
-4. In _Step 3_ select `aws.greengrass.clientdevices.mqtt.Bridge` and press _Configure component_. 
-5. In the window _Configuration to merge_ insert the following
-```
-{
-   "mqttTopicMapping": 
-      {
-      "GroupName_LocalToCloud": {
-         "topic": "saiot/GROUPNAME/publish",
-         "source": "LocalMqtt",
-         "target": "IotCore"
+6. Under _Client device auth_ press _Edit configuration_ and add the following under _Configuration to merge_:
+   ```
+   {
+      "deviceGroups": {
+         "formatVersion": "2021-03-05",
+         "definitions": {
+            "MyDeviceGroup": {
+               "selectionRule": "thingName: *",
+               "policyName": "MyClientDevicePolicy"
+            }
+         },
+         "policies": {
+            "MyClientDevicePolicy": {
+               "AllowConnect": {
+                  "statementDescription": "Allow client devices to connect.",
+                  "operations": [
+                     "mqtt:connect"
+                  ],
+                  "resources": [
+                     "*"
+                  ]
+               },
+               "AllowPublish": {
+                  "statementDescription": "Allow client devices to publish to all topics.",
+                  "operations": [
+                     "mqtt:publish"
+                  ],
+                  "resources": [
+                     "*"
+                  ]
+               },
+               "AllowSubscribe": {
+                  "statementDescription": "Allow client devices to subscribe to all topics.",
+                  "operations": [
+                     "mqtt:subscribe"
+                  ],
+                  "resources": [
+                     "*"
+                  ]
+               }
+            }
+         }
       }
    }
-}
-```
-where `GROUPNAME` should be a unique identifier for your group. Remember the MQTT topic, i.e., `saiot/GROUPNAME/publish`.
-4. Press _Confirm_.
-5. Press _Next_ on _Step 4_ and then _Deploy_ on _Step 5_.
+   ```
+   Press _Confirm_. 
+7. Under _MQTT bridge_ press _Edit configuration_ and add the following under _Configuration to merge_:
+   ```
+   {
+      "mqttTopicMapping": 
+         {
+         "GroupName_LocalToCloud": {
+            "topic": "saiot/GROUPNAME/publish",
+            "source": "LocalMqtt",
+            "target": "IotCore"
+         }
+      }
+   }
+   ```
+   Remeber to change GROUPNAME to something unique for your group. You need to write this down as well. Press _Confirm_. 
+   
+   This will forward MQTT messages arriving from the local MQTT broker running on the Greengrass instance on the RPI (_LocalMqtt_) to the cloud (_IoTCore_). In the next lab we will need to modify this to allow for bidirectional traffic, but this is fine for now.
+8. Press _Review and deploy_. 
+9. Press _Deploy_.
 
 Now go back to _Manage > Greengrass devices > Deployments_. The deployment you modified will first have the status `Active` which indicates that the changes are being processed on the Greengrass instance on the RPI. After it is finished it will change to `Completed` (it might take some minutes).
 
@@ -246,20 +248,20 @@ to also print new lines that are printed in the log file.
    _saiot/GROUPNAME/publish_. Select _Display payloads as strings (more
    accurate)_ option and then _Subscribe_.
 2. In your VM, run the following commands
-    
-    ```
-    vm> cd ./Publisher_Sim
-    vm> python3 ../aws-iot-device-sdk-python-v2/samples/pubsub.py --endpoint ENDPOINT --key publisher_sim-private.pem.key --cert publisher_sim.pem.crt --client_id Publisher_GROUPNAME --topic 'saiot/GROUPNAME/publish' --message 'Hello World' 
-    ```
-        You can get the ENDPOINT from _AWS IoT_ -> _Settings_ and under _Custom
-    Endpoint_ . The names of topic must match with topic name in all the
-    above steps. Client id option must match the name of the thing.
+   
+   ```
+   vm> cd ./Publisher_Sim
+   vm> python3 ../aws-iot-device-sdk-python-v2/samples/pubsub.py --endpoint ENDPOINT --key publisher_sim-private.pem.key --cert publisher_sim.pem.crt --client_id Publisher_GROUPNAME --topic 'saiot/GROUPNAME/publish' --message 'Hello World' 
+   ```
+   You can get the ENDPOINT from _AWS IoT_ -> _Settings_ and under _Custom
+   Endpoint_. The names of topic must match with topic name in all the
+   above steps. Client id option must match the name of the thing.
 
-    **Verify**: If connection is not established, verify endpoint is correct.
-    Also verify that the certificate paths are correct. The Thingname should be
-    same as the Thing name under _Manage > All devices > Things_. 
+**Verify**: If connection is not established, verify endpoint is correct.
+Also verify that the certificate paths are correct. The Thingname should be
+same as the Thing name under _Manage > All devices > Things_. Another thing to check is that the certificate for the thing is activated: Open your thing under _Manage > All devices > Things_. Under the _Certificates_ tab, there should be a certificate that is indicated as `Active`. 
 
-   If you run these commands on your own machine (not using the VM), you will probably need to install the AWSIoTPythonSDK module in Python: `pip install AWSIoTPythonSDK` and find where `pubsub.py` is located.
+If you run these commands on your own machine (not using the VM), you will probably need to install the AWSIoTPythonSDK module in Python: `pip install AWSIoTPythonSDK` and find where `pubsub.py` is located.
 
 ## To do
 
@@ -272,9 +274,14 @@ to also print new lines that are printed in the log file.
    module and use `perf_counter()` to measure the time. See
    [documentation](https://docs.python.org/3/library/time.html#time.perf_counter). Compare the measured time with the ping value optained from the VM to your gateway. (7p)
 
-## Optional Tasks
+## Optional Tasks - Needs updating!
+
+
 
 ### Verify privacy
+
+Repeat the previous steps to create another Thing. Call it _Snoopy_subscriber_GROUPNAME_. We will
+try to simulate a malicious subscriber using this Thing. After creation, select the _Snoopy_subscriber_GROUPNAME_ thing and press _Disassociate_ to deactivate it.
 
 Instead of using the `Publisher_Sim`, use `Snoopy_Subscriber_GROUPNAME` and try
 to publish or subscribe to the same topic. 
