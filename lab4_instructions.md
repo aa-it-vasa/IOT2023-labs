@@ -72,7 +72,7 @@ In order for a Python Lambda function to run on a AWS Greengrass device, it
 must be packaged with specified folders from the Python AWS Greengrass core
 SDK. This step has already been done and you can find an archive
 `hello_world_python_lambda.zip` in the folder `SourceCode\Lab4` in the Github repository. You can view the
-contents of this archive to verify that `greengrassHelloWorld.py` is packaged
+contents of this archive to verify that `lambda_function.py` is packaged
 with AWS Greengrass core SDK, which forms the external dependency.  You are now
 ready to upload your Lambda function `.zip` file to the AWS Lambda console.
 
@@ -84,20 +84,20 @@ ready to upload your Lambda function `.zip` file to the AWS Lambda console.
 
 4. Give a unique name for your function, e.g. `HelloWorld_GROUPNAME`, and
    choose `Python 3.7` as _Runtime_. Select _Use an existing role_ and select `service-role/DefaultLambdaRole`
-   in the _Existing Role_ field. Cchoose _Create function_.
+   in the _Existing Role_ field. Choose _Create function_.
 
 5. On the _Code source_ section, choose _Upload from .zip file_ and then upload
    `hello_world_python_lambda.zip`.
 
-6. Under _Runtime settings_ (scroll down) make sure that _Python 3.7_ is selected. You will also need to update the _Handler_ field. This is the function that is executed first when the lambda function is triggered: Press _Edit_, then change the field _Handler_ into `greengrassHelloWorld.function_handler`. 
+6. Under _Runtime settings_ (scroll down) make sure that _Python 3.7_ is selected. You will also need to update the _Handler_ field. This is the function that is executed first when the lambda function is triggered: Press _Edit_, then change the field _Handler_ into `lambda_function.lambda_handler`. 
 
-   Think a moment about what `greengrassHelloWorld.function_handler` corresponds to in the code source window. 
+   Think a moment about what `lambda_function.lambda_handler` corresponds to in the code source window. 
 
-7. Now is a good time to go through the code in `greengrassHelloWorld.py`. Change the publish topic to something unique and write this down.
+7. Now is a good time to go through the code in `lambda_function.py`. Change the publish topic to `saiot/GROUPNAME/localtocloud`, where `GROUPNAME` is a unique identifier, and write this down.
 
 8. When you are ready to deploy this version press the button _Deploy_. 
    
-9. To check that there are now issues with the code, you can select the _Test tab_. Note that this is not the same as the Test-button in the code source box. press the _Test_ button. Note that the original function might time out since it sleeps for 10 seconds. Also you might need to change the _Event JSON_ input which corresponds to the input given to the lambda function.
+9. To check that there are now issues with the code, you can select the _Test tab_. Note that this is not the same as the Test-button in the code source box. press the _Test_ button. Also you might need to change the _Event JSON_ input which corresponds to the input given to the lambda function.
 
 10. When you are ready to publish a version of your lambda function (a published version can be access by other parts of AWS) select _Actions > Publish new version_. Write a description in the _Version description_ field, such as _First version_ (or leave it empty), then select _Publish_.
 
@@ -111,7 +111,9 @@ ready to upload your Lambda function `.zip` file to the AWS Lambda console.
 
 4. For the version, choose the latest version you created.
 
-5. Set the _Timeout_ to `20` seconds. 
+5. Under _Event sources_ we need to setup the bindings for when the Lambda function should be executed. Press _Add event source_ and set _Topic_ to `saiot/GROUPNAME/localtocloud` and _Type_ to `Local publish/subscribe`. Press _Add event source_ again and set _Topic_ to `saiot/GROUPNAME/cloudtolocal` and _Type_ to `AWS IoT Core MQTT`. The first one will be used to send the message from the VM and the second from the AWS console. 
+
+5. Set the _Timeout_ to `10` seconds. 
 
 6. Select `True` under _Pinned_. A *long-lived (pinned) Lambda function* starts automatically after AWS Greengrass starts and keeps running in its own container (or sandbox). 
 
@@ -129,14 +131,11 @@ An AWS Greengrass Lambda function can subscribe to or publish messages (using MQ
 * To other Lambda functions.
 * To the AWS IoT cloud.
 
-The AWS Greengrass group controls the way in which these components
-interact by using subscriptions that enable greater security and to provide
-predictable interactions. We will add new subscribers and publishers to
-send/receive messages:
+We will now setup the Greengrass core running on the RPI so that the messages are passed from the cloud to the edge (and the other way):
 
 1. Select _AWS IoT > Manage > Greengrass devices > Deployments_. Select the checkmark for the deployment of your Greengrass core in the list (the _Target name_ column should be the name of your core device) and press _Revise_.
 
-2. Press _Next_ to advance to _Step 2: select components_. Select your Lambda function under _My components_. Leave everything in _Public components_ selected. Press _Next_.
+2. Press _Next_ to advance to _Step 2: select components_. Select your Lambda function under _My components_. Under _Public components_ we need to add `aws.greengrass.LegacySubscriptionRouter` to the list of activated components. Deactive the switch _Show only selected components_ and select `aws.greengrass.LegacySubscriptionRouter`. Press _Next_.
 
 3. Select `aws.greengrass.clientdevices.mqtt.Bridge` and press _Configure component_. The box _Configuration to merge_ should be changed to:
    ```
@@ -155,7 +154,22 @@ send/receive messages:
       }
    }
    ```
-   Press _Confirm_, _Next_, _Next_ and _Deploy_. 
+   Remember to update the topic to the correct one for your group. Press _Confirm_. 
+
+4. Select `aws.greengrass.LegacySubscriptionRouter` and press _Configure component_. The box _Configuration to merge_ should be changed to:
+   ```
+   {
+	   "subscriptions": {
+         "Greengrass_LocalToCloud": {
+            "id": "Greengrass_LocalToCloud",
+            "source": "component:newfunctA",
+            "subject": "saiot/GROUPNAME/localtocloud",
+            "target": "cloud"
+         }
+      }
+   }
+   ```
+   Remember to update the topic to the correct one for your group. Press _Confirm_, _Next_, _Next_ and _Deploy_. 
 
 4. Wait until the changes are updated on your RPI (might take a minute or two). Good idea run  
    ```
@@ -170,49 +184,29 @@ If the Lambda function is deployed correctly, there should be a file created in 
 rpi> sudo ls -als /greengrass/v2/logs/
 rpi> sudo tail -f /greengrass/v2/logs/lambdaname.log
 ```
-Check that there are no errors in the log files. 
+Check that there are no errors in the log files and that the log file for the lambda is updated. If there are some issues (e.g., your Python code crashes, you might need to restart the Greengrass service by issuing 
+```
+rpi> sudo systemctl restart greengrass
+```
 
- From _AWS IoT_ -> _Test_ -> _MQTT test client_, setup a new subscriber to the topic
-   _saiot/GROUPNAME/localtocloud_. Select _Display payloads as strings (more
-   accurate)_ option and then _Subscribe_.
+From _AWS IoT_ -> _Test_ -> _MQTT test client_, setup a new subscriber to the topic _saiot/GROUPNAME/localtocloud_. Select _Display payloads as strings (more accurate)_ option and then _Subscribe_.
 
 1. From the left pane of the AWS IoT console, choose _Test_
 	
-2. Setup the subscriber connecting on the topic you used in step 1 of the previous
-section Configure clients (hello/world).
+2. Setup the subscriber connecting on the topic you used in step 1 of the previous section Configure clients (hello/world).
 
 3. Publisher will send message to the topic used in step 2 of the previous section Configure clients.
 
-Each publish is triggering the function handler and creating a new
-container for each invocation. The invocation count need not increment for
-every trigger because each on-demand Lambda function has its own
-container/sandbox. If you publish and trigger the function after waiting
-for timeout period (defaul 3s), you will see that the invocation count is
-incremented.
+Each publish is triggering the function handler and creating a new container for each invocation. The invocation count need not increment for every trigger because each on-demand Lambda function has its own container/sandbox. If you publish and trigger the function after waiting for timeout period (default 1s), you will see that the invocation count is incremented.
 
-This shows that a container, first created from a prior invocation, is
-being reused, and pre-processing variables outside of function handler have
-been used.
-
-## Activate logging
-
-To log debug information to the RPi, on the GREENGRASS GROUP page, choose _Settings_. 
-Under _Local logs configuration_, press _Edit_. Press _Add another type of log_ and
-activate either _User lambdas_ or _Greengrass system_. After this you can also set the 
-logging level. The logs will be available in the _system_ and _user_ subfolders of _/greengrass/ggc/var/log_ on the
-RPi. 
+This shows that a container, first created from a prior invocation, is being reused, and pre-processing variables outside of function handler have been used.
 	
 ## To do
-
-1. Understand the `greengrassHelloWorld.py` code that you had packaged into a
-   Lambda function above.
-2. Connect a device, one that you created in the last lab, with lambda. The
-   setup you are looking at is given below. You can use `pubsub.py` to 
-   publish messages from your device (see Lab 3).
-    1. Device -> Lambda. Device sends message on topic
-       `saiot/GROUPNAME/lambda`
-    2. Lambda -> IoT Cloud. Lambda parses the message sent by the device and
-       forwards it to IoT Cloud on topic `saiot/GROUPNAME/cloud`.
+ 
+1. Understand the `lambda_function.py` code that you had packaged into a Lambda function above.
+2. Connect the simulated device that you created in the last lab, with the Lambda function. The setup you are looking at is given below. You can use `pubsub.py` to publish messages from your device (see Lab 3).
+    1. Device -> Lambda. Device sends message on topic `saiot/GROUPNAME/localtolambda`. Tip: you will need to update some of the settings for the component and deployment above.
+    2. Lambda -> IoT Cloud. Lambda parses the message sent by the device and forwards it to IoT Cloud on topic `saiot/GROUPNAME/localtocloud`.
 3. In your report describe the achieved architecture and behavior of your application. Use figures to illustrate your description. (5p)
 4. In your report describe the behavior differences between a long-lived Lambda function and an on-demand Lambda function deployed on a gateway. Illustrate your response taking a simple application example and provide the corresponding sequence (UML) diagrams for each. (5p)
 
@@ -220,50 +214,22 @@ RPi.
 
 ### Asset Monitor
 
-We will make a latency critical application for the following scenario. The
-scenario has a sensor that measures the temperature of an important asset and
-sends the value to the edge. If the temperature goes beyond 40 C, the edge
-responds by actuating an alarm and by indicating the cloud that alarm has been
-sounded. In addition to viewing the logs, a user at the cloud can also issue
-the command "TEMP" to get the current temperature of the asset.
+We will make a latency critical application for the following scenario. The scenario has a sensor that measures the temperature of an important asset and sends the value to the edge. If the temperature goes beyond 40 C, the edge responds by actuating an alarm and by indicating the cloud that alarm has been sounded. In addition to viewing the logs, a user at the cloud can also issue the command "TEMP" to get the current temperature of the asset.
 
-You need to create a new an alarm actuator that acts as a subscriber and you
-can use `pubsub.py` to simulate the alarm by using it as subscriber mode. Read
-the code to find out how to do this. On successful actuation of the alarm, the
-alarm device prints out a device indicating that the alarm has been actuated.
-You may have to modify `pubsub.py` suitably.
+You need to create a new an alarm actuator that acts as a subscriber and you can use `pubsub.py` to simulate the alarm by using it as subscriber mode. Read the code to find out how to do this. On successful actuation of the alarm, the alarm device prints out a device indicating that the alarm has been actuated. You may have to modify `pubsub.py` suitably.
 
-To send the temperature, use `pubTemperature.py`. 
+To send the temperature, create a modified version of `pubsub.py` (or create a bash script that periodically sends temperatures using the normal `pubsub.py` command).
 
-All your topics should begin with `saiot/GROUPNAME`
+All your topics should begin with `saiot/GROUPNAME` to avoid clashes with other groups' topics.
 
-Modify the initial Lambda code as you seem fit and establish necessary forward
-and backward connections to implement the scenario. 
+Modify the initial Lambda code as you seem fit and establish necessary forward and backward connections to implement the scenario. 
 
-#### Hints
+### Hints
 
-1. This is a considerably long task and would require you to chart out the
-   devices, paths and topics on a piece of paper. 
-2. Debate what would be a good model to run Lambda functions. Would it be _On
-   Demand_ or _Long running_?
-3. Lambda function prints a log on Raspberry Pi gateway and this can serve as a
-   good way to debug your implementations. To view the log do the following:
-
+1. This is a considerably long task and would require you to chart out the devices, paths and topics on a piece of paper. 
+2. Debate what would be a good model to run Lambda functions. Would it be _On Demand_ or _Long running_?
+3. Lambda functions prints a log on Raspberry Pi gateway and this can serve as a good way to debug your implementations. 
    ```
-   pi> sudo -i
-   pi> cd /greengrass/ggc/var/log/user/ZONE/CUSTOMERID/
-   pi> tail -f LAMBDANAME.log
+   rpi> sudo cat /greengrass/v2/logs/greengrass.log
+   rpi> sudo cat /greengrass/v2/logs/LAMBDANAME.log
    ```
-
-   ZONE is abbreviation of the zone AWS services are hosted and is similar to `eu-central`.
-
-   CUSTOMERID is a string of number and is similar to `942670838593`.
-
-   LAMBDANAME is the name of the Lambda function.
-
-   You can explore `/greengrass/ggc/var` directory to find other useful logs
-   for debugging purposes.
-
-### Right Policies
-
-Design and attach right policies for each device, lambda and gateway.
