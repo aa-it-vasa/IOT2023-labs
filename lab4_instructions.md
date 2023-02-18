@@ -45,159 +45,136 @@ respond to events sent by cloud as well as devices in the group.
 
 ## Run Greengrass Daemon
 
-In your last lab exercise, you had installed AWS Greengrass runtime on the
-Raspberry Pi along with the security keys. We will start the runtime so that
-the edge connects to AWS Cloud services. 
+Make sure Greengrass core is running on your RPI. For example check the AWS Console under _AWS IoT > Manage > Greengrass devices > Core devices_. It the status is not `Healthy` and the status reported is less than the amount of time since you rebooted the RPI, then reboot the PI, check e.g., the 
+status of the Greengrass service
+```
+rpi> sudo systemctl status greengrass
+```
+If it is stopped start it with 
+```
+rpi> sudo systemctl start greengrass
+```
+You can also check the Greengrass log files on the PI with 
+```
+rpi> sudo cat /greengrass/v2/logs/greengrass.log
+```
 
-1. Login to assigned Raspberry Pi
-	```
-	vm> ssh pi@IPADDRESS
-	```
-
-2. Verify that the contents of `/greengrass/config/config.json` is valid. You
-   can view the file by
-	```
-	pi> cat /greengrass/config/config.json
-	```
-
-	![](./figs/lab2-02.png)
-
-    **Verify**: A `config.json` is valid if -
-
-    * `certPath` and `keyPath` starts with the `GUID` of your security key
-
-    * `thingArn` is same as that of the Greengrass Group. To get the
-          `thingArn` of your Greengrass Group, in AWS IoT Console, choose
-          _Manage_ and _Things_. Select the core that starts with the
-          Greengrass Group. The _Thing ARN_ is situated in the _Details_
-          tab of the _THING_ page.  
-          ![](./figs/lab2-03.png)
-          ![](./figs/lab2-04.png)
-
-4. Check if AWS Greengrass daemon is started already.
-	```
-	pi> ps aux | grep 'greengrass.*daemon'
-	```
-    If Greengrass daemon is active, you should get the output similar to the
-    following:
-
-	![](./figs/lab2-05.png)
-
-	Otherwise, start the daemon with the following command:
-	```
-	pi> cd /greengrass/ggc/packages/1.11.5/
-	pi> sudo ./greengrassd start
-	```
-    You can exit following successful start of the AWS Greengrass daemon:
-	```
-	pi> exit
-	```
+If you cannot get it working, check with the lab assistant or recreate the Greengrass core device like in Lab 3.
 
 ## Deploy AWS Lambda on AWS Greengrass Core
 
 You are now ready to configure and deploy the Lambda function for AWS
-Greengrass
+Greengrass.
 
 ### Create and Package a Lambda Function
 
 In order for a Python Lambda function to run on a AWS Greengrass device, it
 must be packaged with specified folders from the Python AWS Greengrass core
 SDK. This step has already been done and you can find an archive
-`hello_world_python_lambda.zip` in the folder `labsaiot`. You can view the
+`hello_world_python_lambda.zip` in the folder `SourceCode\Lab4` in the Github repository. You can view the
 contents of this archive to verify that `greengrassHelloWorld.py` is packaged
 with AWS Greengrass core SDK, which forms the external dependency.  You are now
 ready to upload your Lambda function `.zip` file to the AWS Lambda console.
 
-1. From the AWS Management console, under _Compute_, click _Lambda_. 
+1. From the AWS Management console, under _Services > Compute_, click _Lambda_. 
 
 2. From menu on the left, click _Dashboard_. Click _Create Function_.
 
 3. Choose _Author from scratch_ (this option may already be selected).
 
 4. Give a unique name for your function, e.g. `HelloWorld_GROUPNAME`, and
-   choose `Python 3.7` as _Runtime_. Check if `service-role/DefaultLambdaRole`
-   exists in the _Existing Role_. If it does, select it and choose _Create 
-   function_
-	
-	![](./figs/gg-get-started-049.png)
-
-    **Otherwise**, you can create a security role for your Lambda function by
-    choosing _Create a new role from template(s)_ under _Role_. Use the
-    _DefaultLambdaRole_ for _Role name_ and select _AWS IoT Button
-    permissions_ under _Policy templates_. Next, choose _Create function_
-    
-    ![](./figs/Lab4_ScreenShot1.png)
+   choose `Python 3.7` as _Runtime_. Select _Use an existing role_ and select `service-role/DefaultLambdaRole`
+   in the _Existing Role_ field. Cchoose _Create function_.
 
 5. On the _Code source_ section, choose _Upload from .zip file_ and then upload
-   `hello_world_python_lambda.zip` file from the `project_home` directory.
-   Under _Runtime settings_ (scroll down) select _Edit_ and select _Python 3.7_. For _Handler_, type
-   _greengrassHelloWorld.function_handler_.
+   `hello_world_python_lambda.zip`.
 
-7. Click _Save_.
+6. Under _Runtime settings_ (scroll down) make sure that _Python 3.7_ is selected. You will also need to update the _Handler_ field. This is the function that is executed first when the lambda function is triggered: Press _Edit_, then change the field _Handler_ into `greengrassHelloWorld.function_handler`. 
 
-8. Now is a good time to go through the code and note important details such as
-   publish topic.
+   Think a moment about what `greengrassHelloWorld.function_handler` corresponds to in the code source window. 
 
-9. When you are ready to deploy this version you can publish the code. If you 
-   have made changes to the code, you needto press the _Deploy_ button first. Then,
-   publish this Lambda function, under _Actions_, choose _Publish new version_.
-   Write a description in the _Version filed_ field, such as _First version_
-   (or leave it empty), then select _Publish_.
+7. Now is a good time to go through the code in `greengrassHelloWorld.py`. Change the publish topic to something unique and write this down.
+
+8. When you are ready to deploy this version press the button _Deploy_. 
+   
+9. To check that there are now issues with the code, you can select the _Test tab_. Note that this is not the same as the Test-button in the code source box. press the _Test_ button. Note that the original function might time out since it sleeps for 10 seconds. Also you might need to change the _Event JSON_ input which corresponds to the input given to the lambda function.
+
+10. When you are ready to publish a version of your lambda function (a published version can be access by other parts of AWS) select _Actions > Publish new version_. Write a description in the _Version description_ field, such as _First version_ (or leave it empty), then select _Publish_.
 
 ### Configure Lambda for AWS Greengrass
 
-1. In the AWS IoT console, go to _IoT Core_ and _Greengrass_, and from _Groups_
-   choose the group you created in the last lab.
+1. In the AWS IoT console, go to _AWS IoT > Manage > Greengrass devices > Components_. Press _Create component_.
 
-2. On the _GROUP_ page, choose _Lambdas_. Next, choose _Add Lambda_
+2. Select _Import Lambda function_.
 
-3. Choose _Use existing Lambda_.
+3. Search for the name of the Lambda you created in the previous step, and select it. 
 
-4. Search for the name of the Lambda you created in the previous step, select it, and then choose _Next_. If you do not see your function, make sure you set `Python 3.7` as _Runtime_ in your Lambda above.
+4. For the version, choose the latest version you created.
 
-5. For the version, choose the latest version you created, and then choose
-   _Finish_. 
+5. Set the _Timeout_ to `20` seconds. 
 
-6. You should see the Greengrass_HelloWorld Lambda function in your group.
-   Choose the ellipsis (...) for the Lambda function, then choose _Edit
-   Configuration_. This is the page where you can set the response timeouts and
-   type of lambda. Set the timeout to 20s. Rest can be defaults. Click _Update_
-   to exit.
+6. Select `True` under _Pinned_. A *long-lived (pinned) Lambda function* starts automatically after AWS Greengrass starts and keeps running in its own container (or sandbox). 
 
-A *long-lived Lambda function* starts automatically after AWS Greengrass
-starts and keeps running in its own container (or sandbox). Repeatedly triggering the handler of a *long-lived Lambda function* might queues up responses from the AWS IoT Greengrass core.
-This is in contrast to an *on-demand Lambda function* which might create a new container for a new invocation if the handler in previsouly created containers are still busy (i.e. processing data).
-After this session, if you have time, you can change the settings and check the difference in behaviour. You can also have a look at these two examples: [here](https://docs.aws.amazon.com/greengrass/latest/developerguide/long-testing.html) and [here](https://docs.aws.amazon.com/greengrass/latest/developerguide/on-demand.html)
+   Repeatedly triggering the handler of a *long-lived Lambda function* might queues up responses from the AWS IoT Greengrass core. This is in contrast to an *on-demand (not pinned) Lambda function* which might create a new container for a new invocation if the handler in previsouly created containers are still busy (i.e. processing data).
+
+   After this session, if you have time, you can change the settings and check the difference in behaviour. You can also have a look at these two examples: [here](https://docs.aws.amazon.com/greengrass/latest/developerguide/long-testing.html) and [here](https://docs.aws.amazon.com/greengrass/latest/developerguide/on-demand.html).
+
+7. Press _Create component_.
 
 ### Configure clients
 
-An AWS Greengrass Lambda function can subscribe or publish messages (using MQTT protocol):
+An AWS Greengrass Lambda function can subscribe to or publish messages (using MQTT protocol):
 
 * To and from other devices within the AWS Greengrass core.
-* To other Lambda functions
+* To other Lambda functions.
 * To the AWS IoT cloud.
 
 The AWS Greengrass group controls the way in which these components
 interact by using subscriptions that enable greater security and to provide
 predictable interactions. We will add new subscribers and publishers to
-send/receive messages
+send/receive messages:
 
-1. Like in the last lab, add a publisher-subscriber between your Lambda and
-   _IoT Cloud_. You must have noted the topic in the previous section.
+1. Select _AWS IoT > Manage > Greengrass devices > Deployments_. Select the checkmark for the deployment of your Greengrass core in the list (the _Target name_ column should be the name of your core device) and press _Revise_.
 
-	![](./figs/Lab4_ScreenShot3.png)
-   
-2. Similarly, add a publisher-subscriber between in the reverse path. i.e. _IoT
-   Cloud_ and your lambda. The topic for this direction can be anything, but
-   not the same one you used in the previous step.
+2. Press _Next_ to advance to _Step 2: select components_. Select your Lambda function under _My components_. Leave everything in _Public components_ selected. Press _Next_.
 
-### Deploying on the Cloud
+3. Select `aws.greengrass.clientdevices.mqtt.Bridge` and press _Configure component_. The box _Configuration to merge_ should be changed to:
+   ```
+   {
+	   "mqttTopicMapping": {
+         "GroupName_LocalToCloud": {
+            "topic": "saiot/GROUPNAME/localtocloud",
+            "source": "LocalMqtt",
+            "target": "IotCore"
+         },
+         "GroupName_CloudToLocal": {
+            "topic": "saiot/GROUPNAME/cloudtolocal",
+            "source": "IotCore",
+            "target": "LocalMqtt"
+         }
+      }
+   }
+   ```
+   Press _Confirm_, _Next_, _Next_ and _Deploy_. 
 
-1. At this point, the AWS Greengrass core on your Raspberry Pi must be running.
-
-2. On _GREENGRASS GROUP_ page, choose _Deployments_. Under _Actions_, choose _Deploy_.
+4. Wait until the changes are updated on your RPI (might take a minute or two). Good idea run  
+   ```
+   rpi> sudo tail -f /greengrass/v2/logs/greengrass.log
+   ```
+   to make sure there are no errors. 
 
 ## Verify the Lambda Function is Running on the Device
+
+If the Lambda function is deployed correctly, there should be a file created in the log directory named `lambdaname.log`.
+```
+rpi> sudo ls -als /greengrass/v2/logs/
+rpi> sudo tail -f /greengrass/v2/logs/lambdaname.log
+```
+Check that there are no errors in the log files. 
+
+ From _AWS IoT_ -> _Test_ -> _MQTT test client_, setup a new subscriber to the topic
+   _saiot/GROUPNAME/localtocloud_. Select _Display payloads as strings (more
+   accurate)_ option and then _Subscribe_.
 
 1. From the left pane of the AWS IoT console, choose _Test_
 	
