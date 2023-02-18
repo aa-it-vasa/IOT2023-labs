@@ -126,35 +126,54 @@ one step.
 7. Make sure that the Thing you created is visible in the list of things. 
 8. You can now close this tab to go back to the _Associate client devices with core device_ popup window. 
 9. Write the name of the created thing in the field _AWS IoT thing name_ and press _Add_. Press _Associate_. Make sure that your thing is now in the list _Associated client devices_ on the _Client devices_ tab.
+10. We also need to allow the group the things is part of to send and receive MQTT messages to and from the MQTT broker running on the Greengrass device. Select the tab _Thing groups_ and press the name of the group. Select the tab _Policies_ and press the buttom _Manage policies_. Press _Add policy_ and select _GreengrassV2IoTThingPolicy_ and press _Update policies_. It should look like this:
+
+
+![](./figs/thing_group_policies.png)
 
 **Optional:** If you want to do the optional task repeat the previous steps to create another Thing. Call it _Snoopy_subscriber_GROUPNAME_. We will
 try to simulate a malicious subscriber using this Thing. After creation, select the _Snoopy_subscriber_GROUPNAME_ thing and press _Disassociate_ to deactivate it.
 
-## Setup MQTT connections
+To setup a connection between your device and the cloud, through the gateway we will need to setup the MQTT broker on the Greengrass core device. 
 
-Here we will setup a connection between your device and the cloud, through the
-gateway.
+1. In the _Client devices_ tab press the button _Manage endpoints_ under _MQTT broker endpoints_. 
+2. In the field _Endpoint_ enter the IP address of your RPI. Enter _8883_ as the port and press _Update_. 
 
-1. In the group menu, select _Subscriptions_ and then _Add Subscription_.
-2. As a source, select your device `Publisher_GROUPNAME` situated under
-   _Devices_.  As a target, select _IoT Cloud_. Click _Next_.
-3. Use `saiot/GROUPNAME/publish` as the _Topic filter_, where GROUPNAME is a
-   unique name of your group. Click _Next_ and _Finish_.
+## Create the MQTT subscriptions
 
-## Deploy the changes
+We also need to make sure that the MQTT messages are passed on through the broker on the Greengrass core device instance running on the RPI:
+1. Under _Manage > Greengrass devices > Deployments_ press select the one corresponding to your Greengrass Core device group, e.g., with _GreenGrassCore-groupname_ as the _Target name_ and press _Revise_. 
+2. Press _Next_ to advance to _Step 2_.
+3. In the box _Public components_ make sure that _Show only selected components_ is disable to show the full list. Then make sure at least the following `aws.greengrass.Cli`, `aws.greengrass.clientdevices.mqtt.Bridge`, `aws.greengrass.clientdevices.mqtt.Moquette` are selected and press _Next_. 
+4. In _Step 3_ select `aws.greengrass.clientdevices.mqtt.Bridge` and press _Configure component_. 
+5. In the window _Configuration to merge_ insert the following
+```
+{
+   "mqttTopicMapping": 
+      {
+      "GroupName_LocalToCloud": {
+         "topic": "saiot/GROUPNAME/publish",
+         "source": "LocalMqtt",
+         "target": "IotCore"
+      }
+   }
+}
+```
+where `GROUPNAME` should be a unique identifier for your group. Remember the MQTT topic, i.e., `saiot/GROUPNAME/publish`.
+4. Press _Confirm_.
+5. Press _Next_ on _Step 4_ and then _Deploy_ on _Step 5_.
 
-Now we are ready to deploy our changes. Meaning, we will notify the gateway
-of all the devices, subscriptions, policies etc. associated with our group.
+Now go back to _Manage > Greengrass devices > Deployments_. The deployment you modified will first have the status `Active` which indicates that the changes are being processed on the Greengrass instance on the RPI. After it is finished it will change to `Completed` (it might take some minutes).
 
-1. In the _Greengrass Group_ menu, go to _Deployments_. 
-2. Under _Actions_ click _Deploy_.
-3. Next to _Manually configure Core endpoints_, click _Manually configure_.
-4. Type in the IPADDRESS of your raspberry pi in _Endpoint_ and port as _8883_.
-   Click _Next_. This is the IP address your device will try to connect after
-   getting the group CA from the AWS IoT. Check the Appendix on how mutual
-   authentication works.
-5. Finally, in the Group page, click on _Deployments_. Click on _Actions_ and
-   _Deploy_. This step downloads the group information to the gateway. Make sure that the status is `Successfully completed'.
+To troubleshoot you can view the Greengrass logs on the RPI by executing the following command
+```
+rpi> sudo cat /greengrass/v2/logs/greengrass.log
+```
+or 
+```
+rpi> sudo tail -f /greengrass/v2/logs/greengrass.log
+```
+to also print new lines that are printed in the log file. 
 
 ## Test the connection
 
