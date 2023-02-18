@@ -9,8 +9,7 @@ the optional tasks of the last lab. If the intention is to organise Things
 together in a logical fashion, for e.g. at the customer level or at a level of
 a floor of a building, then setting per customer and per device policy does not
 scale. We need a better way of organising them and in process make sure that
-the devices of one customer cannot
-unintentionally connect with the devices of another customer. 
+the devices of one customer cannot unintentionally connect with the devices of another customer. 
 
 Gateways are one good way to achieve vertical hierarchy among things. Policies
 are good way of managing horizontal hierarchy.  For instance, it is useful to
@@ -56,7 +55,8 @@ exercise and walks you through discovery and connection management.
    powered up and connected to network. To connect to the Raspberry Pi,
    you need the IP address of the gateway. The IP address should be given
    to you during the lab.
-   Of course to be able to reach your gateway from the VM, your laptop needs to be also conected to the same network (SSID BUFFALO2, same Wifi password as the one used by the Sketch _mqtt_unsecure_ in Lab1) 
+   Of course to be able to reach your gateway from the VM, your laptop needs to 
+   be also conected to the same network using the same wireless network as in Lab 1. 
 2. To connect to the gateway, in your VM open a terminal and ssh into it.
    The username is `pi` and password is `raspberry`.
    Commands run in Raspberry Pi is preceded `pi>` and in your VM as `vm>`.
@@ -65,10 +65,38 @@ exercise and walks you through discovery and connection management.
    vm> ssh pi@IPADDRESS
    ```
 
+## Setup Greengrass Core Device
+
+To setup the Greengrass software on the RPI we will use the Greengrass device setup script provided by AWS. This script will
+1. Configure your device and installs the AWS IoT Greengrass Core software.
+2. Configure your cloud-based resources.
+
+Perform the following steps to setup the Greengrass software:
+
+1. In the AWS Console Go to _Services > Internet of Things > IoT Greengrass_. 
+2. Under _Manage_ select _Greengrass devices > Core devices_. 
+3. Press the button _Set up one core device_. 
+4. Give the core device a unique name that you will remember. For example _GreenGrassCore-groupname_. Write down the name of the core.
+5. Select _Enter a new group name_ under _Thing group_. Give the group a unique name, for example, _GreengrassGroup-groupname_. Write down the name of the group.
+6. Select _Linux_ under _Operating System_.
+7. Some credentials are needed for the script to be able to communicate with the corresponding AWS services. Depending on the setup, these can be different for each gateway device or shared. For simplicity and security, these will be provided to each group during the lab. It is easiest if these are saved as environmental variables in the shell you are using on the RPI. Execute the following commands on the RPI.
+```
+pi> export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+pi> export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+pi> export AWS_SESSION_TOKEN=AQoDYXdzEJr1K...o5OytwEXAMPLE=
+```
+where the keys are replaced with their correct values. Also remember to remove the `pi>` statement. 
+8. Download and start the script according to the instructions on the AWS Console. You can use `curl` to download the script, for example:
+```
+curl https://d1onfpft10uf5o.cloudfront.net/greengrass-device-setup/downloads/gg-device-setup-latest.sh > gg-device-setup-latest.sh && chmod +x ./gg-device-setup-latest.sh && sudo -E ./gg-device-setup-latest.sh bootstrap-greengrass-interactive 
+```
+9. Run the installer by executing the **specific** command given under _Run the installer_. Make sure you understand what the command does and that it executes successfully, i.e., that there are no error messages.
+10. Press _View core devices_ to return to the list. Your device should now be visible in the list. 
+
 ## Setup a Greengrass Group
 
 1. Login to AWS console. Under _Services_,  _Internet of Things_, open _IoT Core_.
-2. From the left menu, select _Greengrass Classic V1_ and select _Create a group_. In this course we will only use **AWS IoT Greengrass V1**.
+2. From the left menu, select _Greengrass devices_ under _Manage_ and then _Groups V1_ and select _Create a group_. In this course we will only use **AWS IoT Greengrass V1**.
 3. Click on _Grant permission_ if needed.
 3. Select _Use default creation_ to generate certificates for the
    gateway.
