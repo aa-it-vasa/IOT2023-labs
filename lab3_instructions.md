@@ -112,7 +112,72 @@ one step.
 2. There are several tabs on the detail page of the core device (the RPI's Greengrass instance). 
 - Components: Here all the different software components deployed to the core device is listed. For example, we have an MQTT broker (Moquette) and a MQTT bridge deployed. It is also possible to deploy what components are deployed under _Manage > Greengrass devices > Deployments_. We will look at this in the next lab.
 - Client devices: here we can add local Things that will communicate through the Greengrass instance installed on the RPI. These can be, e.g., sensors or actuators (or our simulated thing in this case).
-3. To register the thing select the tab _Client devices_ and press the button _Associate client devices_. Then press the button _View AWS IoT things_ which will open a list of the existing things. 
+3. To register the thing select the tab _Client devices_ and press the button _Cloud discovery configuration_. Select _Target type_ as _Core device_. The _Target name_ field should be prepopulated with the name of the Greengrass core device name you have created.
+4. Press the button _Associate client devices_. Enter the name of your created thing into the _AWS IoT thing name_ and press _Add_. Then press _Associate_. 
+5. Under _Step 3_ the following items should be checked.
+
+![](./figs/cloud_discover_step3.png)
+
+6. Under _Client device auth_ press _Edit configuration_ and add the following under _Configuration to merge_:
+```
+{
+	"deviceGroups": {
+		"formatVersion": "2021-03-05",
+		"definitions": {
+			"MyDeviceGroup": {
+				"selectionRule": "thingName: *",
+				"policyName": "MyClientDevicePolicy"
+			}
+		},
+		"policies": {
+			"MyClientDevicePolicy": {
+				"AllowConnect": {
+					"statementDescription": "Allow client devices to connect.",
+					"operations": [
+						"mqtt:connect"
+					],
+					"resources": [
+						"*"
+					]
+				},
+				"AllowPublish": {
+					"statementDescription": "Allow client devices to publish to all topics.",
+					"operations": [
+						"mqtt:publish"
+					],
+					"resources": [
+						"*"
+					]
+				},
+				"AllowSubscribe": {
+					"statementDescription": "Allow client devices to subscribe to all topics.",
+					"operations": [
+						"mqtt:subscribe"
+					],
+					"resources": [
+						"*"
+					]
+				}
+			}
+		}
+	}
+}
+```
+5. Under _MQTT bridge_ press _Edit configuration_ and add the following under _Configuration to merge_:
+```
+{
+   "mqttTopicMapping": 
+      {
+      "GroupName_LocalToCloud": {
+         "topic": "saiot/GROUPNAME/publish",
+         "source": "LocalMqtt",
+         "target": "IotCore"
+      }
+   }
+}
+```
+6. Press _Review and deploy_.
+
 4. Press _Create things_ and select _Create single thing_ and press _Next_.  
 5. Enter a unique name for your thing, e.g., `simthing_groupname` and press _Next_. Remember this name!
 6. We want AWS to generate the certificates and keys that will be used to authorize the communication from the thing, so use the default _Auto-generate a new certificate (recommended)_ and press _Next_. 
@@ -184,20 +249,17 @@ to also print new lines that are printed in the log file.
     
     ```
     vm> cd ./Publisher_Sim
-    vm> python3 ../Lab3/pubSub.py -e ENDPOINT -r root_ca.pem -c publisher_sim.pem.crt -k publisher_sim-private.pem.key -n Publisher_GROUPNAME -t saiot/GROUPNAME/publish -m publish -M "Hello World" 
+    vm> python3 ../aws-iot-device-sdk-python-v2/samples/pubsub.py --endpoint ENDPOINT --key publisher_sim-private.pem.key --cert publisher_sim.pem.crt --client_id Publisher_GROUPNAME --topic 'saiot/GROUPNAME/publish' --message 'Hello World' 
     ```
-    
-    You can get the ENDPOINT from _AWS IoT_ -> _Settings_ and under _Custom
+        You can get the ENDPOINT from _AWS IoT_ -> _Settings_ and under _Custom
     Endpoint_ . The names of topic must match with topic name in all the
-    above steps. Name of the Thing give as `-n` option must match the name of
-    the thing.
+    above steps. Client id option must match the name of the thing.
 
     **Verify**: If connection is not established, verify endpoint is correct.
     Also verify that the certificate paths are correct. The Thingname should be
-    same as the Thingname in the Group under Greengrass page. Also verify that
-    the topic exists.
+    same as the Thing name under _Manage > All devices > Things_. 
 
-   If you run these commands on your own machine (not using the VM), you will probably need to install the AWSIoTPythonSDK module in Python: `pip install AWSIoTPythonSDK`.
+   If you run these commands on your own machine (not using the VM), you will probably need to install the AWSIoTPythonSDK module in Python: `pip install AWSIoTPythonSDK` and find where `pubsub.py` is located.
 
 ## To do
 
