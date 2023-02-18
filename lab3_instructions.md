@@ -84,9 +84,14 @@ To setup the Greengrass software on the RPI we will use the Greengrass device se
 1. Configure your device and installs the AWS IoT Greengrass Core software.
 2. Configure your cloud-based resources.
 
+First we will setup an access key. You only need to do this once per group (as long as you remember the key).
+1. In the AWS Console press your user name in the upper right corner and select _Security credentials_. You do not have permissions to most of the settings on this page, but under _Access keys_ there is the option for you to create a new one. Press _Create access key_ select _Other_ and press _Next_. Provide a description, e.g., your group members and press _Create access key_. 
+2. Save the _Access key_ and _Secret access key_ to a text file on the VM (you can for example select _Download .csv file_).
+3. Press _Done_.
+
 Perform the following steps to setup the Greengrass software:
 
-1. In the AWS Console Go to _Services > Internet of Things > IoT Greengrass_. 
+1. In the AWS Console go to _Services > Internet of Things > IoT Greengrass_. 
 2. Under _Manage_ select _Greengrass devices > Core devices_. 
 3. Press the button _Set up one core device_. 
 4. Give the core device a unique name that you will remember. For example _GreenGrassCore-groupname_. Write down the name of the core.
