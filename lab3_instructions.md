@@ -91,99 +91,8 @@ where the keys are replaced with their correct values. Also remember to remove t
 curl https://d1onfpft10uf5o.cloudfront.net/greengrass-device-setup/downloads/gg-device-setup-latest.sh > gg-device-setup-latest.sh && chmod +x ./gg-device-setup-latest.sh && sudo -E ./gg-device-setup-latest.sh bootstrap-greengrass-interactive 
 ```
 9. Run the installer by executing the **specific** command given under _Run the installer_. Make sure you understand what the command does and that it executes successfully, i.e., that there are no error messages.
-10. Press _View core devices_ to return to the list. Your device should now be visible in the list. 
+10. Press _View core devices_ to return to the list. Your device should now be visible in the list and its status should be _Healthy_. 
 
-## Setup a Greengrass Group
-
-1. Login to AWS console. Under _Services_,  _Internet of Things_, open _IoT Core_.
-2. From the left menu, select _Greengrass devices_ under _Manage_ and then _Groups V1_ and select _Create a group_. In this course we will only use **AWS IoT Greengrass V1**.
-3. Click on _Grant permission_ if needed.
-3. Select _Use default creation_ to generate certificates for the
-   gateway.
-4. Give a unique name for your group (e.g. `Group_GROUPNAME_NUMBER`). Click
-   next.
-5. You can leave the Core name as it is. Click _Next_. If another Core with a
-   same name exists, then it will throw and error. 
-6. You can click _Learn More_ to see what each step does. Check Appendix to
-   learn more. Click _Create Group and Core_. 
-7. Download the certificates with _Download these resources as a tar.gz_ to `project_home`. Create a folder and rename it
-   to the name of the group you used (see step 4). This folder is referred to
-   as `CERT_FOLDER`. Copy the archive to this directory. We will *not* extract
-   the archive for now.
-8. Download current Greengrass Core software to `CERT_FOLDER` from _Choose your platform_. This software
-   will run on the gateway. The gateway's device certificates are hardcoded in
-   the image you will download. As Raspberry Pi is Armv7l architecture and runs
-   with Raspbian, we will download the corresponding image. 
-9. Click _Finish_ when done with all the above two steps. If you have trouble
-   creating a new group, refresh the page. This will bring you to Step 3. Here
-   click on _Customize_ mode. Select the same group name and attach _Greengrass
-   ServiceRole_ as the policy under _Use existing role_. For Core, select from existing Thing and click
-   _Create Group_.
-
-## Run the Greengrass core
-
-1. In previous step, you downloaded gateway's certificates that has the form
-   *GUID*-setup-tar.gz into the folder `CERT_FOLDER`, where *GUID* is a string
-   of numbers and `CERT_FOLDER` is the location where you saved the
-   certificates.
-2. Copy the archive to the Raspberry Pi. The following commands will be useful:
-
-	```bash
-    VM> scp CERT_FOLDER/GUID-setup.tar.gz pi@IPADDRESS:/home/pi
-    VM> scp CERT_FOLDER/greengrass-linux-armv7l*.tar.gz pi@IPADDRESS:/home/pi
-	```
-	
-	The first command copies the security keys to the Raspberry Pi and second command copies the AWS Greengrass core binary to the Raspberry Pi.
-3. Login to your assigned Raspberry Pi and extract the archives.
-
-	```bash
-    vm> ssh pi@IPADDRESS
-    pi> sudo tar -xzv -f greengrass-linux-armv7l*.tar.gz -C /
-    pi> sudo tar -xzv -f GUID-setup.tar.gz -C /greengrass
-	```
-    The first command logs you into the Raspberry Pi. The second command
-    creates the `/greengrass` directory in the root folder of the AWS
-    Greengrass core device (via the `-C /` argument). The second command copies
-    the certificates into the `/greengrass/certs` folder and the `config.json`
-    file into the `/greengrass/config` folder (via the `-C /greengrass`
-    argument). For more information, see [`config.json` Parameter Summary](https://docs.aws.amazon.com/greengrass/latest/developerguide/gg-device-start.html#config.json-params)
- 	
-    **Verify**: If extraction was successful, you must see non-empty output for
-    first command and for the second command, you must see files starting with
-    `GUID`.
- 	
- 	```bash
-    pi> sudo ls /greengrass/ggc/packages/1.11.5/
-    pi> sudo ls /greengrass/certs/
- 	``` 
- 
-4. Install the root CA onto your device. This certificate enables your device
-   to communicate with AWS IoT using the MQTT messaging protocol over TLS. Run
-   the following commands (note `-O` is capital `o` and not number `0`):
- 
-	 ```bash
-    pi> cd /greengrass/certs
-    pi> sudo wget -O root.ca.pem https://www.amazontrust.com/repository/AmazonRootCA1.pem
-	 ```
-	 
-    **Verify**: `root.ca.pem` is not empty. The following command should show
-    you the contents of the file: `> cat root.ca.pem` If `root.ca.pem` is
-    empty, check the wget URL and try again.
-
-5. You need to setup the Raspberry Pi for Greengrass. Follow steps 9--12 from [here](https://docs.aws.amazon.com/greengrass/latest/developerguide/setup-filter.rpi.html). Note that these changes might have been done already on the Raspberry Pi.
- 
-6. Use the following commands to start AWS Greengrass
- 
-	 ```bash
-    pi> cd /greengrass/ggc/packages/1.11.5/
-    pi> sudo ./greengrassd start
-	 ```
-	 
-    **Verify**: The command exits with message "Greengrass successfully started
-    with PID: "
- 
-7. On successful execution of step 6, type `pi> exit` to return to your
-   development computer.
 
 ## Create Things
 
@@ -199,25 +108,27 @@ The simulated Thing will be your terminal from your computer. To create a new
 thing, we will create the key pair and register the public key with AWS IoT in
 one step. 
 
-1. In the VM, the folder `Publisher_Sim` will be used to store
-   certificates related to the new thing.
-2. From the left menu in AWS, go to _Greengrass_, _Classic (V1)_ and _Groups_. Select the group you created earlier (e.g. `Group_GROUPNAME_NUMBER`).
-3. Click _Devices_ and _Add Device_.
-4. Choose _Create a new device_.
-3. Give a unique name for the device. (e.g. Publisher_GROUPNAME). Rest can be
-   defaults.  Click _Next_.
-4. Next to _1-Click_, click _Use Defaults_
-5. Download the certificate, public and private key and store it in
-   `Publisher_Sim`.  You can rename the certificate, public and private key as
+1. Under _Manage > Greengrass devices > Core devices_ open the Greengrass core device you created in the previous step by clicking on its name. 
+2. There are several tabs on the detail page of the core device (the RPI's Greengrass instance). 
+- Components: Here all the different software components deployed to the core device is listed. For example, we have an MQTT broker (Moquette) and a MQTT bridge deployed. It is also possible to deploy what components are deployed under _Manage > Greengrass devices > Deployments_. We will look at this in the next lab.
+- Client devices: here we can add local Things that will communicate through the Greengrass instance installed on the RPI. These can be, e.g., sensors or actuators (or our simulated thing in this case).
+3. To register the thing select the tab _Client devices_ and press the button _Associate client devices_. Then press the button _View AWS IoT things_ which will open a list of the existing things. 
+4. Press _Create things_ and select _Create single thing_ and press _Next_.  
+5. Enter a unique name for your thing, e.g., `simthing_groupname` and press _Next_. Remember this name!
+6. We want AWS to generate the certificates and keys that will be used to authorize the communication from the thing, so use the default _Auto-generate a new certificate (recommended)_ and press _Next_. 
+7. In the _Policies_ window, do not select a policy and just press _Next_. 
+8. In the window _Download certificates and keys_, download the device certificate, public and private keys and store them in the folder 
+   `Publisher_Sim` on the VM. You can rename the certificate, public and private key as
    `publisher_sim.pem.crt`, `publisher_sim-public.pem.key` and
-   `publisher_sim-private.pem.key`.
-6. Finally, download the root ca from
-   [here](https://www.amazontrust.com/repository/AmazonRootCA1.pem) and store
-   it as `root_ca.pem`.
+   `publisher_sim-private.pem.key`. Note that if you forget to save these at this stage, you will need to recreate the thing!
+6. Finally, download the RSA 2048 root ca from the window. You can also download it from
+   [here](https://www.amazontrust.com/repository/AmazonRootCA1.pem). Save it as `root_ca.pem` in the same folder as they previous certificate and keys. 
+7. Make sure that the Thing you created is visible in the list of things. 
+8. You can now close this tab to go back to the _Associate client devices with core device_ popup window. 
+9. Write the name of the created thing in the field _AWS IoT thing name_ and press _Add_. Press _Associate_. Make sure that your thing is now in the list _Associated client devices_ on the _Client devices_ tab.
 
-Similarly create another Thing. Call it `Snoopy_subscriber_GROUPNAME`. We will
-try to simulate a malicious subscriber using this Thing. After creation, click 
-on the ellipsis after the device `Snoopy_subscriber_GROUPNAME` and click _Detach_.
+**Optional:** If you want to do the optional task repeat the previous steps to create another Thing. Call it _Snoopy_subscriber_GROUPNAME_. We will
+try to simulate a malicious subscriber using this Thing. After creation, select the _Snoopy_subscriber_GROUPNAME_ thing and press _Disassociate_ to deactivate it.
 
 ## Setup MQTT connections
 
