@@ -100,6 +100,8 @@ You should:
 
 4. Check you can start the VM. 
 
+5. Clone your repository on the VM. More information [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). You might need to setup some authentication. 
+
 - **The username and password are iotlabs/iotlabs.**
 - Feel free to change the screen resolution in Ubuntu or to scale in/out the virtual screen. 
 - Feel free to create a shared folder between your physical machine and VM (Settings->Shared folder). The following mount point can be used: /home/iotlabs/SharedFolder
@@ -110,5 +112,3 @@ You should:
 **If you have issue when booting the VM**, you should try to enable "3D acceleration" in Settings->Display before starting the imported VM. Also try increasing the amount of video memory and disabling audio support.
 
 **If you have disk capacity issue,** you can increase the size of the VM disk using the Tools menu. Go to Tools->Virtual Media Manager->Select 'IoT-Labs 2023-Disk001.vdi'-> increase the disk size -> click on 'Apply'.
-
-5. Clone your repository on the VM. More information [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). You might need to setup some authentication. 
