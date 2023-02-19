@@ -94,19 +94,21 @@ For the Labs your will use a Virtualbox Ubuntu-based virtual machine (VM) as a d
 You should:
 
 1. Download and install Virtualbox on your laptop: https://www.virtualbox.org/wiki/Downloads 
-2. Download the VM from this link: https://abofi-my.sharepoint.com/:u:/g/personal/sebastien_lafond_abo_fi/EWD1KYrk5SFGodFMVAcazS0BY70TteSb7HSuY2IvKLgP7A?e=RhyZJk
+2. Download the VM from the course Team on Microsoft Teams and channel _Labs_.
 
-3. Import the downloaded VM into Virtualbox by selecting the downloaded .ova file. The current VM has 4GB of RAM - Feel free to adjust it based on your own laptop configuration
+3. Import the downloaded VM into Virtualbox by selecting the downloaded .ova file. The current VM has 4GB of RAM - Feel free to adjust it based on your own laptop configuration.
 
 4. Check you can start the VM. 
 
 - **The username and password are iotlabs/iotlabs.**
-- Feel free to change the screen resolution in ubuntu or to scale in/out the virtual screen (from the "screen logo" on the bottom left). 
+- Feel free to change the screen resolution in Ubuntu or to scale in/out the virtual screen. 
 - Feel free to create a shared folder between your physical machine and VM (Settings->Shared folder). The following mount point can be used: /home/iotlabs/SharedFolder
-- The VM has Atom installed as a possible source code editor
+- The VM has Atom and VS Code installed as a possible source code editor.
 
-**If you have issues when importing the above VM,** you should try this other version which uses the Open Virtualisation Format 2.0:https://abofi-my.sharepoint.com/:u:/g/personal/sebastien_lafond_abo_fi/Eb7x907amK9EksK2EbC8aJMBfSfJVjsf55Lay9wLXhT5rA?e=WcB4bf
+**If you have issues when importing the above VM,** you should the other version (also available in Teams) which uses the Open Virtualisation Format 2.0.
 
 **If you have issue when booting the VM**, you should try to enable "3D acceleration" in Settings->Display before starting the imported VM. Also try increasing the amount of video memory and disabling audio support.
 
-**If you have disk capacity issue,** you can increase the size of the VM disk using the Tools menu. Go to Tools->Virtual Media Manager->Select 'IoT-Labs-Disk001.vdi'-> increase the disk size -> click on 'Apply'
+**If you have disk capacity issue,** you can increase the size of the VM disk using the Tools menu. Go to Tools->Virtual Media Manager->Select 'IoT-Labs 2023-Disk001.vdi'-> increase the disk size -> click on 'Apply'.
+
+5. Clone your repository on the VM. More information [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). You might need to setup some authentication. 
