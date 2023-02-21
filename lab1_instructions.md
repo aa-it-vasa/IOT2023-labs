@@ -160,9 +160,7 @@ mosquitto_pub -h broker.hivemq.com -t "commandTopic" -m "command"
 1.  Modify your subscriber to implement these two commands (2 p)
     1. The **ON** command will turn on the onboard LED. 
     2. Similarly, **OFF** command will turn off the onboard LED.
-    3. The **TEMP** command will send the temperature on the appropriate
-       response topic, once.
-    4. Any other command will not generate a response. 
+    3. Any other command will not generate a response. 
 2. Modify the publisher to transmit messages only when an appropriate **TEMP** command
    is received. (2 p)
 3. Test the implementation by sending the **ON**, **OFF** and **TEMP** commands on the relevant topic from your desktop machine (your Ubuntu VM machine) (2 p)
