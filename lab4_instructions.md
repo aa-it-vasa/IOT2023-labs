@@ -162,14 +162,14 @@ We will now setup the Greengrass core running on the RPI so that the messages ar
 	   "subscriptions": {
          "Greengrass_LocalToCloud": {
             "id": "Greengrass_LocalToCloud",
-            "source": "component:newfunctA",
+            "source": "component:yourlambdafunction",
             "subject": "saiot/GROUPNAME/localtocloud",
             "target": "cloud"
          }
       }
    }
    ```
-   Remember to update the topic to the correct one for your group. Press _Confirm_, _Next_, _Next_ and _Deploy_. 
+   Remember to update the topic to the correct one for your group. Also the `yourlambdafunction` should be changed to the name of the Lambda function in Step 2. Press _Confirm_, _Next_, _Next_ and _Deploy_. 
 
 4. Wait until the changes are updated on your RPI (might take a minute or two). Good idea run  
    ```
