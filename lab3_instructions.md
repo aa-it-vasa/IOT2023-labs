@@ -89,6 +89,8 @@ First we will setup an access key. You only need to do this once per group (as l
 2. Save the _Access key_ and _Secret access key_ to a text file on the VM (you can for example select _Download .csv file_).
 3. Press _Done_.
 
+**Note:** If the _Create access key_ button is deactivated there might already be two assigned keys (which is the maximum). _Deactivate_ and _Delete_ the old keys before adding a new one! Check that the user is not using the access keys before deactivation.
+
 Perform the following steps to setup the Greengrass software:
 
 1. In the AWS Console go to _Services > Internet of Things > IoT Greengrass_. 
