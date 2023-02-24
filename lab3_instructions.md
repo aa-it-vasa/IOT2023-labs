@@ -131,7 +131,9 @@ Perform the following steps to setup the Greengrass software:
    Configured Nucleus to deploy aws.greengrass.Cli component
    Successfully set up Nucleus as a system service
    ```
+   **Note:** If you get an error message about `<username> is not authorized to perform: iam:PassRole` then check that you are in the Frankfurt region (eu-central-1) in the console and in your command.
 10. Press _View core devices_ to return to the list. Your device should now be visible in the list and its status should be _Healthy_. 
+
 
 
 ## Create Things
