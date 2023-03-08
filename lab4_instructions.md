@@ -89,11 +89,11 @@ ready to upload your Lambda function `.zip` file to the AWS Lambda console.
 5. On the _Code source_ section, choose _Upload from .zip file_ and then upload
    `hello_world_python_lambda.zip`.
 
-6. Under _Runtime settings_ (scroll down) make sure that _Python 3.7_ is selected. You will also need to update the _Handler_ field. This is the function that is executed first when the lambda function is triggered: Press _Edit_, then change the field _Handler_ into `lambda_function.lambda_handler`. 
+6. Under _Runtime settings_ (scroll down) make sure that _Python 3.7_ is selected. You will also need to update the _Handler_ field. This is the function that is executed first when the lambda function is triggered: Press _Edit_, then change the field _Handler_ into `greengrassHelloWorld.function_handler`. 
 
-   Think a moment about what `lambda_function.lambda_handler` corresponds to in the code source window. 
+   Think a moment about what `greengrassHelloWorld.function_handler` corresponds to in the code source window. 
 
-7. Now is a good time to go through the code in `lambda_function.py`. Change the publish topic to `saiot/GROUPNAME/localtocloud`, where `GROUPNAME` is a unique identifier, and write this down.
+7. Now is a good time to go through the code in `greengrassHelloWorld.py`. Change the publish topic to `saiot/GROUPNAME/localtocloud`, where `GROUPNAME` is a unique identifier, and write this down.
 
 8. When you are ready to deploy this version press the button _Deploy_. 
    
